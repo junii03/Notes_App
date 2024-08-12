@@ -9,35 +9,20 @@ A simple and intuitive Notes App built with Flutter, designed to help you manage
 - **Responsive Design:** Enjoy a consistent experience across devices with adaptive layouts.
 - **Confirmation Dialog:** Get user confirmation before deleting a note to prevent accidental deletions.
 
-## Screenshots
+#### Screenshots
 
-### Light Mode
+| ![Light Mode Screenshot](assets/Screenshots/light_mode.png) | ![Dark Mode Screenshot](assets/Screenshots/dark_mode.png) | ![Create Note Screenshot](assets/Screenshots/add_note.png) |
+|-------------------------------------------------------------|------------------------------------------------------------|-----------------------------------------------------------|
+| Light Mode Interface                                      | Dark Mode Interface                                       | Creating a New Note                                      |
 
-![Light Mode Screenshot](assets/Screenshots/light_mode.png)
+| ![Edit Note Screenshot](assets/Screenshots/update_note.png) | ![Delete Confirmation Screenshot](assets/Screenshots/delete_note.png)| ![Drawer Screenshot](assets/Screenshots/drawer.png) | 
+|-------------------------------------------------------------|-------------------------------------------------------------|-----------------------------------------------------|
+| Editing an Existing Note                                  | Confirmation Dialog for Deleting a Note                       | Navigation Drawer                                |
 
-### Dark Mode
 
-![Dark Mode Screenshot](assets/Screenshots/dark_mode.png)
 
-### Add Note
 
-![Create Note Screenshot](assets/Screenshots/add_note.png)
 
-### Update Note
-
-![Edit Note Screenshot](assets/Screenshots/update_note.png)
-
-### Delete Confirmation
-
-![Delete Confirmation Screenshot](assets/Screenshots/delete_note.png)
-
-### Settings
-
-![Settings Screenshot](assets/Screenshots/settings.png)
-
-### Drawer
-
-![Drawer Screenshot](assets/Screenshots/drawer.png)
 
 ## Installation
 
