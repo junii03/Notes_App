@@ -54,3 +54,4 @@ Follow these steps to get the app up and running on your local machine.
 3. **Edit a note** by tapping on 3 dots and making changes.
 4. **Delete a note** by tapping on 3 dots followed by confirming the deletion.
 
+# While I was learning about Flutter, I developed this app. It wasn't my original idea.
