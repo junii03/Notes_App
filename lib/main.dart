@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:notes_application/models/notes_database.dart';
 import 'package:notes_application/pages/notes_page.dart';
+import 'package:notes_application/theme/theme.dart';
 import 'package:notes_application/theme/theme_provider.dart';
 import 'package:provider/provider.dart';
 
@@ -26,10 +27,13 @@ class MyApp extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final themeProvider = Provider.of<ThemeProvider>(context);
     return MaterialApp(
-      theme: Provider.of<ThemeProvider>(context).themeData,
       debugShowCheckedModeBanner: false,
-      home: NotesPage(),
+      home: const NotesPage(),
+      theme: lightMode,
+      darkTheme: darkMode,
+      themeMode: themeProvider.themeMode,
     );
   }
 }

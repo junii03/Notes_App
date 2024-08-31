@@ -15,16 +15,20 @@ class NotesPage extends StatefulWidget {
 
 class _NotesPageState extends State<NotesPage> {
   final TextEditingController textController = TextEditingController();
+  final TextEditingController searchController = TextEditingController();
+  List<Notes> filteredNotes = [];
 
   @override
   void initState() {
     super.initState();
     readNotes();
+    searchController.addListener(_filterNotes);
   }
 
   @override
   void dispose() {
     textController.dispose();
+    searchController.dispose();
     super.dispose();
   }
 
@@ -38,20 +42,29 @@ class _NotesPageState extends State<NotesPage> {
         title: 'New Note',
         onSubmit: () {
           if (textController.text.isNotEmpty) {
-            context.read<NotesDatabase>().addNote(textController.text);
-            Navigator.pop(context);
-            ScaffoldMessenger.of(context).showSnackBar(
-              SnackBar(
-                content: Text(
-                  'Note Created!',
-                  style: TextStyle(
-                    color: Theme.of(context).colorScheme.onSecondary,
+            context
+                .read<NotesDatabase>()
+                .addNote(textController.text)
+                .then((_) {
+              Navigator.pop(context);
+              ScaffoldMessenger.of(context).showSnackBar(
+                SnackBar(
+                  content: Text(
+                    'Note Created!',
+                    style: TextStyle(
+                      color: Theme.of(context).colorScheme.onSecondary,
+                    ),
                   ),
+                  backgroundColor: Theme.of(context).colorScheme.secondary,
+                  dismissDirection: DismissDirection.horizontal,
                 ),
-                backgroundColor: Theme.of(context).colorScheme.secondary,
-                dismissDirection: DismissDirection.horizontal,
-              ),
-            );
+              );
+              setState(() {
+                textController.clear();
+                filteredNotes = [];
+                FocusScope.of(context).unfocus();
+              }); // Rebuild the NotesPage
+            });
           }
         },
       ),
@@ -60,7 +73,12 @@ class _NotesPageState extends State<NotesPage> {
 
   // Read notes
   void readNotes() {
-    context.read<NotesDatabase>().fetchNotes();
+    context.read<NotesDatabase>().fetchNotes().then((_) {
+      setState(() {
+        filteredNotes = [];
+        FocusScope.of(context).unfocus();
+      }); // Refresh the page after fetching notes
+    });
   }
 
   // Update a note
@@ -74,20 +92,27 @@ class _NotesPageState extends State<NotesPage> {
           if (textController.text.isNotEmpty) {
             context
                 .read<NotesDatabase>()
-                .updateNote(note.id, textController.text);
-            Navigator.pop(context);
-            ScaffoldMessenger.of(context).showSnackBar(
-              SnackBar(
-                content: Text(
-                  'Note Updated!',
-                  style: TextStyle(
-                    color: Theme.of(context).colorScheme.onSecondary,
+                .updateNote(note.id, textController.text)
+                .then((_) {
+              Navigator.pop(context);
+              ScaffoldMessenger.of(context).showSnackBar(
+                SnackBar(
+                  content: Text(
+                    'Note Updated!',
+                    style: TextStyle(
+                      color: Theme.of(context).colorScheme.onSecondary,
+                    ),
                   ),
+                  backgroundColor: Theme.of(context).colorScheme.secondary,
+                  dismissDirection: DismissDirection.horizontal,
                 ),
-                backgroundColor: Theme.of(context).colorScheme.secondary,
-                dismissDirection: DismissDirection.horizontal,
-              ),
-            );
+              );
+              setState(() {
+                textController.clear();
+                filteredNotes = [];
+                FocusScope.of(context).unfocus();
+              }); // Rebuild the NotesPage
+            });
           }
         },
       ),
@@ -115,20 +140,26 @@ class _NotesPageState extends State<NotesPage> {
         actions: [
           TextButton(
             onPressed: () {
-              // User confirmed, delete the note
-              context.read<NotesDatabase>().deleteNote(id);
               Navigator.pop(context); // Close the dialog
-              ScaffoldMessenger.of(context).showSnackBar(
-                SnackBar(
-                  content: Text(
-                    'Note Deleted!',
-                    style: TextStyle(
-                        color: Theme.of(context).colorScheme.onSecondary),
+              context.read<NotesDatabase>().deleteNote(id).then((_) {
+                ScaffoldMessenger.of(context).showSnackBar(
+                  SnackBar(
+                    content: Text(
+                      'Note Deleted!',
+                      style: TextStyle(
+                        color: Theme.of(context).colorScheme.onSecondary,
+                      ),
+                    ),
+                    backgroundColor: Theme.of(context).colorScheme.secondary,
+                    dismissDirection: DismissDirection.horizontal,
                   ),
-                  backgroundColor: Theme.of(context).colorScheme.secondary,
-                  dismissDirection: DismissDirection.horizontal,
-                ),
-              );
+                );
+
+                setState(() {
+                  filteredNotes = [];
+                  FocusScope.of(context).unfocus();
+                }); // Rebuild the NotesPage
+              });
             },
             child: Text(
               'Yes',
@@ -153,6 +184,17 @@ class _NotesPageState extends State<NotesPage> {
     );
   }
 
+  // Filter notes based on search input
+  void _filterNotes() {
+    final query = searchController.text.toLowerCase();
+    final notesDatabase = context.read<NotesDatabase>();
+    setState(() {
+      filteredNotes = notesDatabase.currentNotes
+          .where((note) => note.text.toLowerCase().contains(query))
+          .toList();
+    });
+  }
+
   Widget buildNoteDialog(
       {required String title, required VoidCallback onSubmit}) {
     return AlertDialog(
@@ -168,12 +210,24 @@ class _NotesPageState extends State<NotesPage> {
         autofocus: true,
         decoration: InputDecoration(
           hintText: 'Enter Your Note',
-          hintStyle: TextStyle(color: Theme.of(context).colorScheme.onSurface),
+          hintStyle: TextStyle(
+              color: Theme.of(context).colorScheme.onSurface.withOpacity(0.6)),
+          border: OutlineInputBorder(
+            borderRadius: BorderRadius.circular(10),
+            borderSide:
+                BorderSide(color: Theme.of(context).colorScheme.primary),
+          ),
+          focusedBorder: OutlineInputBorder(
+            borderRadius: BorderRadius.circular(10),
+            borderSide:
+                BorderSide(color: Theme.of(context).colorScheme.primary),
+          ),
         ),
         cursorColor: Theme.of(context).colorScheme.primary,
         style: TextStyle(
           color: Theme.of(context).colorScheme.onSurface,
         ),
+        maxLines: null,
       ),
       actions: [
         TextButton(
@@ -204,74 +258,101 @@ class _NotesPageState extends State<NotesPage> {
   @override
   Widget build(BuildContext context) {
     final notesDatabase = context.watch<NotesDatabase>();
-    final List<Notes> currentNotes = notesDatabase.currentNotes;
+    final List<Notes> currentNotes =
+        filteredNotes.isEmpty ? notesDatabase.currentNotes : filteredNotes;
 
-    return Scaffold(
-      backgroundColor: Theme.of(context).colorScheme.surface,
-      appBar: AppBar(
+    return GestureDetector(
+      onTap: () {
+        FocusScope.of(context).unfocus(); // Dismiss the keyboard
+      },
+      child: Scaffold(
         backgroundColor: Theme.of(context).colorScheme.surface,
-        elevation: 0,
-        iconTheme: IconThemeData(
-          color: Theme.of(context).colorScheme.onSurface,
-        ),
-      ),
-      floatingActionButton: FloatingActionButton(
-        backgroundColor: Theme.of(context).colorScheme.secondary,
-        elevation: 10,
-        onPressed: createNote,
-        child: Icon(
-          Icons.add,
-          color: Theme.of(context).colorScheme.onSurface,
-        ),
-      ),
-      drawer: const MyDrawer(),
-      body: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          // Header
-          Padding(
-            padding: const EdgeInsets.only(left: 25.0, top: 10.0),
-            child: Text(
-              'Notes',
-              style: GoogleFonts.dmSerifText(
-                fontSize: 45,
-                color: Theme.of(context).colorScheme.onPrimary,
-              ),
+        appBar: AppBar(
+          backgroundColor: Theme.of(context).colorScheme.surface,
+          elevation: 0,
+          iconTheme: IconThemeData(
+            color: Theme.of(context).colorScheme.onSurface,
+          ),
+          title: Text(
+            'Notes',
+            style: GoogleFonts.dmSerifText(
+              fontSize: 30,
+              color: Theme.of(context).colorScheme.onSurface,
             ),
           ),
-
-          // Body
-          Expanded(
-            child: Stack(
-              children: [
-                // background image
-                Positioned.fill(
-                  child: Image.asset(
-                    'assets/logo.png',
-                    fit: BoxFit.scaleDown,
-                    color: Theme.of(context)
-                        .colorScheme
-                        .onSurface
-                        .withOpacity(0.1),
-                    colorBlendMode: BlendMode.modulate,
+          centerTitle: true,
+          actions: [
+            IconButton(
+              icon: Icon(Icons.refresh),
+              onPressed: readNotes,
+              color: Theme.of(context).colorScheme.primary,
+            ),
+          ],
+        ),
+        floatingActionButton: FloatingActionButton(
+          backgroundColor: Theme.of(context).colorScheme.secondary,
+          elevation: 10,
+          onPressed: createNote,
+          child: Icon(
+            Icons.add,
+            color: Theme.of(context).colorScheme.onSecondary,
+          ),
+        ),
+        drawer: const MyDrawer(),
+        body: Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 8.0),
+          child: Column(
+            children: [
+              Padding(
+                padding: const EdgeInsets.symmetric(vertical: 8.0),
+                child: TextField(
+                  autofocus: false,
+                  controller: searchController,
+                  decoration: InputDecoration(
+                    prefixIcon: Icon(Icons.search,
+                        color: Theme.of(context).colorScheme.primary),
+                    hintText: 'Search Notes',
+                    hintStyle: TextStyle(
+                        color: Theme.of(context)
+                            .colorScheme
+                            .onSurface
+                            .withOpacity(0.6)),
+                    border: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(10),
+                    ),
                   ),
+                  cursorColor: Theme.of(context).colorScheme.primary,
+                  onChanged: (value) => _filterNotes(),
                 ),
-                // content
-                ListView.builder(
-                  itemCount: currentNotes.length,
-                  itemBuilder: (context, index) {
-                    final note = currentNotes[index];
-                    return NoteTile(
-                      text: note.text,
-                      onEditPressed: () => updateNote(note),
-                      onDeletePressed: () => deleteNote(note.id),
-                    );
-                  },
-                ),
-              ],
-            ),
+              ),
+              Expanded(
+                child: currentNotes.isEmpty
+                    ? Center(
+                        child: Text(
+                          searchController.text.isEmpty
+                              ? 'No notes available'
+                              : 'No notes found for the search query',
+                          style: TextStyle(
+                            color: Theme.of(context).colorScheme.onSurface,
+                            fontSize: 18,
+                          ),
+                        ),
+                      )
+                    : ListView.builder(
+                        itemCount: currentNotes.length,
+                        itemBuilder: (context, index) {
+                          final note = currentNotes[index];
+                          return NoteTile(
+                            text: note.text,
+                            onEditPressed: () => updateNote(note),
+                            onDeletePressed: () => deleteNote(note.id),
+                          );
+                        },
+                      ),
+              ),
+            ],
           ),
-        ],
+        ),
       ),
     );
   }
