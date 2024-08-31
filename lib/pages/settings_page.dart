@@ -1,4 +1,3 @@
-import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:notes_application/theme/theme_provider.dart';
 import 'package:provider/provider.dart';
@@ -9,36 +8,80 @@ class SettingsPage extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: Theme.of(context).colorScheme.surface,
       appBar: AppBar(
-        elevation: 0,
+        title: const Text('SETTINGS'),
+        titleTextStyle: TextStyle(
+          letterSpacing: 3,
+          fontSize: 25,
+          color: Theme.of(context).colorScheme.inversePrimary,
+          fontWeight: FontWeight.bold,
+        ),
+        centerTitle: true,
       ),
       body: Container(
         decoration: BoxDecoration(
-          color: Theme.of(context).colorScheme.secondary,
-          borderRadius: BorderRadius.circular(15.0),
-        ),
-        padding: EdgeInsets.symmetric(vertical: 10.0, horizontal: 15.0),
-        margin: EdgeInsets.only(left: 25.0,right: 25.0,top: 10.0),
-        child: Row(
-          mainAxisAlignment: MainAxisAlignment.spaceBetween,
-          children: [
-            // Dark Mode
-            Text(
-              'Dark Mode',
-              style: TextStyle(
-                color: Theme.of(context).colorScheme.onSurface,
-                fontWeight: FontWeight.bold,
-              ),
-            ),
-
-            // Toggle Switch
-            CupertinoSwitch(
-                value: Provider.of<ThemeProvider>(context, listen: false).isDark,
-                onChanged: (value) =>
-                    Provider.of<ThemeProvider>(context, listen: false)
-                        .toggleTheme()),
-          ],
+            color: Theme.of(context).colorScheme.secondary,
+            borderRadius: BorderRadius.circular(12)),
+        padding: const EdgeInsets.all(16.0),
+        margin: const EdgeInsets.symmetric(horizontal: 20, vertical: 10),
+        child: Consumer<ThemeProvider>(
+          builder: (context, themeProvider, child) {
+            return Column(
+              mainAxisSize: MainAxisSize.min,
+              crossAxisAlignment: CrossAxisAlignment.center,
+              children: [
+                Text(
+                  'App Theme',
+                  style: TextStyle(
+                    color: Theme.of(context).colorScheme.inversePrimary,
+                    fontSize: 25,
+                  ),
+                ),
+                DropdownButton<ThemeMode>(
+                  isDense: true,
+                  borderRadius: BorderRadius.circular(12),
+                  value: themeProvider.themeMode,
+                  isExpanded: true,
+                  padding:
+                      const EdgeInsets.symmetric(vertical: 15, horizontal: 10),
+                  items: [
+                    DropdownMenuItem(
+                      value: ThemeMode.system,
+                      child: Text(
+                        'System Theme',
+                        style: TextStyle(
+                          color: Theme.of(context).colorScheme.inversePrimary,
+                        ),
+                      ),
+                    ),
+                    DropdownMenuItem(
+                      value: ThemeMode.dark,
+                      child: Text(
+                        'Dark Mode',
+                        style: TextStyle(
+                          color: Theme.of(context).colorScheme.inversePrimary,
+                        ),
+                      ),
+                    ),
+                    DropdownMenuItem(
+                      value: ThemeMode.light,
+                      child: Text(
+                        'Light Mode',
+                        style: TextStyle(
+                          color: Theme.of(context).colorScheme.inversePrimary,
+                        ),
+                      ),
+                    ),
+                  ],
+                  onChanged: (ThemeMode? mode) {
+                    if (mode != null) {
+                      themeProvider.setTheme(mode);
+                    }
+                  },
+                ),
+              ],
+            );
+          },
         ),
       ),
     );
